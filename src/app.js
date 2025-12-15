@@ -4,6 +4,7 @@ import i18next from 'i18next'
 import onChange from 'on-change'
 import watch from './view'
 import { uniqueId } from 'lodash'
+import ru from './locales/ru'
 
 const validateUrl = (url, feeds) => {
   const addedUrls = feeds.map(feed => feed.url)
@@ -16,6 +17,24 @@ const validateUrl = (url, feeds) => {
 }
 
 export default () => {
+  const i18n = i18next.createInstance()
+  i18n.init({
+    lng: 'ru',
+    resources: {
+      ru,
+    },
+  })
+
+  yup.setLocale({
+    mixed: {
+      required: i18n.t('errors.required'),
+      notOneOf: i18n.t('errors.notOneOf'),
+    },
+    string: {
+      url: i18n.t('errors.invalidURL'),
+    }
+  })
+
   const state = {
     feeds: [],
     posts: [],
@@ -34,6 +53,7 @@ export default () => {
   }
 
   const watchedState = onChange(state, (path, value, previousValue) => {
+    console.log(path)
     view.render(path, value, previousValue)
   })
   const view = watch(watchedState)
