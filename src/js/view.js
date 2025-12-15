@@ -23,16 +23,15 @@ const watch = (state) => {
       }
     }
     if (path === 'feeds') {
-      // renderFeeds()
-      console.log('Feeds added = ', state.feeds)
+      renderFeeds()
     }
   }
 
   const renderFeeds = () => {
     elements.feeds.innerHTML = ''
-    state.feeds.forEach((feed) => {
+    /* state.feeds.forEach((feed) => {
 
-    })
+    }) */
     elements.input.value = ''
     elements.input.focus()
   }
