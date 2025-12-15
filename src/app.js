@@ -32,7 +32,7 @@ export default () => {
     },
     string: {
       url: i18n.t('errors.invalidURL'),
-    }
+    },
   })
 
   const state = {
