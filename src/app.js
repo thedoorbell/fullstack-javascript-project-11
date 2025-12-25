@@ -3,13 +3,12 @@ import * as yup from 'yup'
 import i18next from 'i18next'
 import onChange from 'on-change'
 import watch from './view'
-import { uniqueId } from 'lodash'
 import ru from './locales/ru'
 
 const parseRSS = (data) => {
   const rssData = new DOMParser().parseFromString(data, 'application/xml')
   const errorNode = rssData.querySelector('parsererror')
-  
+
   if (errorNode) {
     throw new Error('XMLParseError')
   }
@@ -46,6 +45,33 @@ const validateUrl = (url, feeds) => {
     .validate(url)
     .then(() => null)
     .catch(error => error.message)
+}
+
+const getData = (url) => {
+  const encodedUrl = encodeURIComponent(`${url}`)
+  return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodedUrl}`, { timeout: 10000 })
+}
+
+const update = (state) => {
+  const { feeds, posts: addedPosts } = state
+
+  Promise.all(
+    feeds.map(feed => getData(feed.url)
+      .then((response) => {
+        const { posts } = parseRSS(response.data.contents)
+        const oldPosts = addedPosts.filter(post => post.feedId === feed.id)
+        const newPosts = posts.filter(post => !oldPosts.find(p => p.link === post.link))
+
+        if (newPosts.length > 0) {
+          const postForUpdate = newPosts.map((post, i) => ({
+            id: state.posts.length + i + 1,
+            feedId: feed.id,
+            ...post,
+          }))
+          state.posts.unshift(...postForUpdate)
+        }
+      })),
+  ).finally(() => setTimeout(update, 5000, state))
 }
 
 export const i18n = i18next.createInstance()
@@ -94,18 +120,17 @@ export default () => {
   const loadData = (url) => {
     watchedState.loadingProcess = { status: 'loading' }
 
-    const encodedUrl = encodeURIComponent(`${url}`)
-    axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodedUrl}`, { timeout: 10000 })
+    getData(url)
       .then((response) => {
         const parsedData = parseRSS(response.data.contents)
         const feed = {
-          id: watchedState.feeds.length + 1, 
-          url, 
+          id: watchedState.feeds.length + 1,
+          url,
           ...parsedData.feed,
         }
-        const posts = parsedData.posts.map((post, i) => ({ 
-          id: watchedState.posts.length + i + 1, 
-          feedId: feed.id, 
+        const posts = parsedData.posts.map((post, i) => ({
+          id: watchedState.posts.length + i + 1,
+          feedId: feed.id,
           ...post,
         }))
 
@@ -134,4 +159,6 @@ export default () => {
       loadData(url)
     })
   })
+
+  setTimeout(update, 5000, watchedState)
 }

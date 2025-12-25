@@ -4,7 +4,7 @@ const watch = (state) => {
   const elements = {
     input: document.querySelector('#url-input'),
     form: document.querySelector('.rss-form'),
-    errorMessage: document.querySelector('.feedback'),
+    feedback: document.querySelector('.feedback'),
     feeds: document.querySelector('.feeds'),
     posts: document.querySelector('.posts'),
     button: document.querySelector('.rss-form button'),
@@ -15,11 +15,13 @@ const watch = (state) => {
       switch (value.isValid) {
         case false:
           elements.input.classList.add('is-invalid')
-          elements.errorMessage.textContent = state.form.error
+          elements.feedback.classList.remove('text-success')
+          elements.feedback.classList.add('text-danger')
+          elements.feedback.textContent = state.form.error
           break
         case true:
           elements.input.classList.remove('is-invalid')
-          elements.errorMessage.textContent = ''
+          elements.feedback.textContent = ''
           break
         default:
           break
@@ -35,7 +37,9 @@ const watch = (state) => {
       switch (value.status) {
         case 'failure':
           elements.input.classList.add('is-invalid')
-          elements.errorMessage.textContent = i18n.t(state.loadingProcess.error)
+          elements.feedback.classList.remove('text-success')
+          elements.feedback.classList.add('text-danger')
+          elements.feedback.textContent = i18n.t(state.loadingProcess.error)
           elements.button.disabled = false
           break
         case 'loading':
@@ -43,6 +47,8 @@ const watch = (state) => {
           break
         case 'success':
           elements.button.disabled = false
+          elements.feedback.classList.replace('text-danger', 'text-success')
+          elements.feedback.textContent = i18n.t('success')
           break
         default:
           break
