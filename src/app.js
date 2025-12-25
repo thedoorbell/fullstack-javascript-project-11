@@ -20,6 +20,7 @@ const parseRSS = (data) => {
   const posts = [...rssData.querySelectorAll('item')].map(post => ({
     title: post.querySelector('title').textContent,
     link: post.querySelector('link').textContent,
+    description: post.querySelector('link').textContent,
   }))
 
   return { feed, posts }
@@ -106,8 +107,7 @@ export default () => {
       error: null,
     },
     ui: {
-      currentPost: '',
-      seenPosts: '', // Set?
+      seenPosts: new Set(),
     },
   }
 

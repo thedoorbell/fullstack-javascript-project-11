@@ -8,6 +8,9 @@ const watch = (state) => {
     feeds: document.querySelector('.feeds'),
     posts: document.querySelector('.posts'),
     button: document.querySelector('.rss-form button'),
+    modalTitle: document.querySelector('.modal-title'),
+    modalBody: document.querySelector('.modal-body'),
+    modalButton: document.querySelector('.full-article'),
   }
 
   const render = (path, value) => {
@@ -30,7 +33,7 @@ const watch = (state) => {
     if (path === 'feeds') {
       renderFeeds()
     }
-    if (path === 'posts') {
+    if (path === 'posts' || path === 'ui.seenPosts') {
       renderPosts()
     }
     if (path === 'loadingProcess') {
@@ -105,11 +108,11 @@ const watch = (state) => {
     cardBody.classList.add('card-body')
     const cardTitle = document.createElement('div')
     cardTitle.classList.add('card-title', 'h4')
-    cardTitle.textContent = i18n.t('posts')
 
     elements.posts.append(card)
     card.append(cardBody)
     cardBody.append(cardTitle)
+    cardTitle.textContent = i18n.t('posts')
 
     const postList = document.createElement('ul')
     postList.classList.add('list-group', 'border-0', 'rounded-0')
@@ -117,14 +120,41 @@ const watch = (state) => {
     state.posts.forEach((post) => {
       const li = document.createElement('li')
       li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0')
+
       const a = document.createElement('a')
-      a.classList.add('fw-fold')
+      a.classList.add('fw-bold')
+      a.setAttribute('href', post.link)
+      a.setAttribute('target', '_blank')
+      a.setAttribute('rel', 'noopener noreferrer')
+      a.dataset.id = post.id
+      if (state.ui.seenPosts.has(post)) {
+        a.classList.replace('fw-bold', 'fw-normal')
+      }
+
+      const button = document.createElement('button')
+      button.classList.add('btn', 'btn-outline-primary', 'btn-sm')
+      button.setAttribute('type', 'button')
+      button.setAttribute('data-bs-toggle', 'modal')
+      button.setAttribute('data-bs-target', '#modal')
+      button.dataset.id = post.id
 
       a.textContent = post.title
-      a.href = post.link
+      button.textContent = i18n.t('view')
+
+      Array.from([a, button]).forEach((el) => {
+        el.addEventListener('click', () => {
+          elements.modalBody.textContent = post.description
+          elements.modalTitle.textContent = post.title
+          elements.modalButton.href = post.link
+          if (!state.ui.seenPosts.has(post)) {
+            state.ui.seenPosts.add(post)
+          }
+        })
+      })
 
       postList.append(li)
       li.append(a)
+      li.append(button)
     })
 
     elements.posts.append(postList)
