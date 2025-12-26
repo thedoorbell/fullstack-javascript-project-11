@@ -4,27 +4,7 @@ import i18next from 'i18next'
 import onChange from 'on-change'
 import watch from './view'
 import ru from './locales/ru'
-
-const parseRSS = (data) => {
-  const rssData = new DOMParser().parseFromString(data, 'application/xml')
-  const errorNode = rssData.querySelector('parsererror')
-
-  if (errorNode) {
-    throw new Error('XMLParseError')
-  }
-
-  const feed = {
-    title: rssData.querySelector('channel > title').textContent,
-    description: rssData.querySelector('channel > description').textContent,
-  }
-  const posts = [...rssData.querySelectorAll('item')].map(post => ({
-    title: post.querySelector('title').textContent,
-    link: post.querySelector('link').textContent,
-    description: post.querySelector('link').textContent,
-  }))
-
-  return { feed, posts }
-}
+import parseRSS from './parser'
 
 const getErrorKey = (error) => {
   if (error.name === 'ValidationError') {
@@ -84,7 +64,6 @@ export default () => {
       ru,
     },
   })
-
   yup.setLocale({
     mixed: {
       required: i18n.t('errors.required'),
@@ -111,9 +90,8 @@ export default () => {
     },
   }
 
-  const watchedState = onChange(state, (path, value, previousValue) => {
-    console.log(path, value)
-    view.render(path, value, previousValue)
+  const watchedState = onChange(state, (path, value) => {
+    view.render(path, value)
   })
   const view = watch(watchedState)
 
@@ -140,21 +118,21 @@ export default () => {
       })
       .catch((error) => {
         watchedState.loadingProcess = { status: 'failure', error: getErrorKey(error) }
-        console.log(error)
       })
   }
 
   const form = document.querySelector('.rss-form')
   const input = document.querySelector('#url-input')
-
   form.addEventListener('submit', (e) => {
     e.preventDefault()
     const url = input.value
+
     validateUrl(url, state.feeds).then((error) => {
       if (error) {
         watchedState.form = { error, isValid: false }
         return
       }
+
       watchedState.form = { isValid: true }
       loadData(url)
     })

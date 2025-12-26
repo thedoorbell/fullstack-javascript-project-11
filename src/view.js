@@ -13,13 +13,17 @@ const watch = (state) => {
     modalButton: document.querySelector('.full-article'),
   }
 
+  const showNegativeFeedback = () => {
+    elements.input.classList.add('is-invalid')
+    elements.feedback.classList.remove('text-success')
+    elements.feedback.classList.add('text-danger')
+  }
+
   const render = (path, value) => {
     if (path === 'form') {
       switch (value.isValid) {
         case false:
-          elements.input.classList.add('is-invalid')
-          elements.feedback.classList.remove('text-success')
-          elements.feedback.classList.add('text-danger')
+          showNegativeFeedback()
           elements.feedback.textContent = state.form.error
           break
         case true:
@@ -30,18 +34,10 @@ const watch = (state) => {
           break
       }
     }
-    if (path === 'feeds') {
-      renderFeeds()
-    }
-    if (path === 'posts' || path === 'ui.seenPosts') {
-      renderPosts()
-    }
     if (path === 'loadingProcess') {
       switch (value.status) {
         case 'failure':
-          elements.input.classList.add('is-invalid')
-          elements.feedback.classList.remove('text-success')
-          elements.feedback.classList.add('text-danger')
+          showNegativeFeedback()
           elements.feedback.textContent = i18n.t(state.loadingProcess.error)
           elements.button.disabled = false
           break
@@ -52,10 +48,18 @@ const watch = (state) => {
           elements.button.disabled = false
           elements.feedback.classList.replace('text-danger', 'text-success')
           elements.feedback.textContent = i18n.t('success')
+          elements.input.value = ''
+          elements.input.focus()
           break
         default:
           break
       }
+    }
+    if (path === 'feeds') {
+      renderFeeds()
+    }
+    if (path === 'posts' || path === 'ui.seenPosts') {
+      renderPosts()
     }
   }
 
@@ -94,9 +98,6 @@ const watch = (state) => {
     })
 
     elements.feeds.append(feedList)
-
-    elements.input.value = ''
-    elements.input.focus()
   }
 
   const renderPosts = () => {
@@ -108,11 +109,11 @@ const watch = (state) => {
     cardBody.classList.add('card-body')
     const cardTitle = document.createElement('div')
     cardTitle.classList.add('card-title', 'h4')
+    cardTitle.textContent = i18n.t('posts')
 
     elements.posts.append(card)
     card.append(cardBody)
     cardBody.append(cardTitle)
-    cardTitle.textContent = i18n.t('posts')
 
     const postList = document.createElement('ul')
     postList.classList.add('list-group', 'border-0', 'rounded-0')
