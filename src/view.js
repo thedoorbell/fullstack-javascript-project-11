@@ -129,7 +129,7 @@ const watch = (state) => {
       a.setAttribute('rel', 'noopener noreferrer')
       a.dataset.id = post.id
       if (state.ui.seenPosts.has(post)) {
-        a.classList.replace('fw-bold', 'fw-normal')
+        a.classList.replace('fw-bold', 'link-secondary')
       }
 
       const button = document.createElement('button')
